@@ -1,7 +1,7 @@
 import LoginPage from '../support/pageObjects/loginPage'
 import loginData from '../fixtures/loginData.json'
 
-describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
+describe('Login Feature - OrangeHRM', () => {
 
   beforeEach(() => {
 
@@ -18,7 +18,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
     LoginPage.usernameInput().should('be.visible')
   })
 
-  it('TC-01: Verification Login Page', () => {
+  it('TC-LOG-01: Verification Login Page', () => {
 
     LoginPage.logo().should('be.visible')
     LoginPage.usernameInput().should('be.visible')
@@ -28,7 +28,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
 
   })
 
-  it('TC-02: Login Success With Valid Credential', () => {
+  it('TC-LOG-02: Login Success With Valid Credential', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
@@ -46,7 +46,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-03: Login Failed If The Password is Incorrect', () => {
+  it('TC-LOG-03: Login Failed If The Password is Incorrect', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
@@ -62,7 +62,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-04: Login Failed If The Username is Incorrect', () => {
+  it('TC-LOG-04: Login Failed If The Username is Incorrect', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
@@ -78,7 +78,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-05: Validation When Username is Empty', () => {
+  it('TC-LOG-05: Validation When Username is Empty', () => {
 
     LoginPage.inputPassword(loginData.validUser.password)
     LoginPage.clickLogin()
@@ -88,7 +88,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-06: Validation When Password is Empty', () => {
+  it('TC-LOG-06: Validation When Password is Empty', () => {
 
     LoginPage.inputUsername(loginData.validUser.username)
     LoginPage.clickLogin()
@@ -98,7 +98,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-07: Validation When Both Fields Are Empty', () => {
+  it('TC-LOG-07: Validation When Both Fields Are Empty', () => {
 
     LoginPage.clickLogin()
 
@@ -107,7 +107,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-08: Password Field Must Be Masked', () => {
+  it('TC-LOG-08: Password Field Must Be Masked', () => {
 
     LoginPage.passwordInput()
       .should('have.attr', 'type', 'password')
@@ -120,7 +120,7 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
   })
 
 
-  it('TC-09: Log in by pressing the Enter key', () => {
+  it('TC-LOG-09: Log in by pressing the Enter key', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
@@ -132,6 +132,75 @@ describe('Login Feature - OrangeHRM (POM + Intercept)', () => {
 
     cy.url().should('include', '/dashboard')
     cy.contains('Dashboard').should('be.visible')
+  })
+
+  it('TC-LOG-10: Login Failed When Username and Password Incorrect', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    LoginPage.login('WrongUser', 'WrongPass')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+    cy.url().should('include', '/auth/login')
+  })
+
+  it('TC-LOG-11: Login With Leading or Trailing Spaces', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    LoginPage.login('  Admin  ', 'admin123')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+  })
+
+  it('TC-LOG-12: Login Failed When Password Contains Leading or Trailing Spaces', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    LoginPage.login('Admin', '  admin123  ')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+  })
+
+  it('TC-LOG-13: Login Success When Username Is Uppercase', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    LoginPage.login('ADMIN', 'admin123')
+
+    cy.wait('@loginRequest')
+
+    cy.url().should('include', '/dashboard')
+  })
+
+  it('TC-LOG-14: Login Failed When Password Is Uppercase', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    LoginPage.login('Admin', 'ADMIN123')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+  })
+
+  it('TC-LOG-15: Should Navigate Between Fields Using Tab Key', () => {
+
+    LoginPage.usernameInput().focus()
+
+    cy.realPress('Tab')
+
+    LoginPage.passwordInput().should('have.focus')
+
+    cy.realPress('Tab')
+
+    LoginPage.loginButton().should('have.focus')
   })
 
 })
