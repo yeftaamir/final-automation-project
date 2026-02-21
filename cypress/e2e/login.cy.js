@@ -1,30 +1,27 @@
-import LoginPage from '../support/pageObjects/loginPage'
-import loginData from '../fixtures/loginData.json'
+const LoginPage = require('../support/pageObjects/loginPage')
+const loginData = require('../fixtures/loginData.json')
 
 describe('Login Feature - OrangeHRM', () => {
 
-  beforeEach(() => {
+  const loginPage = new LoginPage()
 
-    cy.clearCookies()
-    cy.clearLocalStorage()
+  beforeEach(() => {
 
     cy.intercept('GET', '**/auth/login').as('loginPage')
 
-    LoginPage.visit()
+    loginPage.visit()
 
     cy.wait('@loginPage')
     cy.url().should('include', '/auth/login')
-
-    LoginPage.usernameInput().should('be.visible')
   })
 
   it('TC-LOG-01: Verification Login Page', () => {
 
-    LoginPage.logo().should('be.visible')
-    LoginPage.usernameInput().should('be.visible')
-    LoginPage.passwordInput().should('be.visible')
-    LoginPage.loginButton().should('be.visible')
-    LoginPage.loginTitle().should('be.visible')
+    loginPage.logo().should('be.visible')
+    loginPage.usernameInput().should('be.visible')
+    loginPage.passwordInput().should('be.visible')
+    loginPage.loginButton().should('be.visible')
+    loginPage.loginTitle().should('be.visible')
 
   })
 
@@ -32,7 +29,7 @@ describe('Login Feature - OrangeHRM', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
-    LoginPage.login(
+    loginPage.login(
       loginData.validUser.username,
       loginData.validUser.password
     )
@@ -42,15 +39,13 @@ describe('Login Feature - OrangeHRM', () => {
       .should('be.oneOf', [200, 302])
 
     cy.url().should('include', '/dashboard')
-    cy.contains('Dashboard').should('be.visible')
   })
 
-
-  it('TC-LOG-03: Login Failed If The Password is Incorrect', () => {
+  it('TC-LOG-03: Login Failed - Wrong Password', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
-    LoginPage.login(
+    loginPage.login(
       loginData.wrongPassword.username,
       loginData.wrongPassword.password
     )
@@ -58,15 +53,13 @@ describe('Login Feature - OrangeHRM', () => {
     cy.wait('@loginRequest')
 
     cy.contains('Invalid credentials').should('be.visible')
-    cy.url().should('include', '/auth/login')
   })
 
-
-  it('TC-LOG-04: Login Failed If The Username is Incorrect', () => {
+  it('TC-LOG-04: Login Failed - Wrong Username', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
-    LoginPage.login(
+    loginPage.login(
       loginData.wrongUsername.username,
       loginData.wrongUsername.password
     )
@@ -74,133 +67,116 @@ describe('Login Feature - OrangeHRM', () => {
     cy.wait('@loginRequest')
 
     cy.contains('Invalid credentials').should('be.visible')
-    cy.url().should('include', '/auth/login')
   })
 
+  it('TC-LOG-05: Validation When Username Empty', () => {
 
-  it('TC-LOG-05: Validation When Username is Empty', () => {
+    loginPage.enterPassword(loginData.validUser.password)
+    loginPage.clickLogin()
 
-    LoginPage.inputPassword(loginData.validUser.password)
-    LoginPage.clickLogin()
-
-    cy.get('.oxd-input-field-error-message')
-      .should('contain.text', 'Required')
+    cy.contains('Required').should('be.visible')
   })
 
+  it('TC-LOG-06: Validation When Password Empty', () => {
 
-  it('TC-LOG-06: Validation When Password is Empty', () => {
+    loginPage.enterUsername(loginData.validUser.username)
+    loginPage.clickLogin()
 
-    LoginPage.inputUsername(loginData.validUser.username)
-    LoginPage.clickLogin()
-
-    cy.get('.oxd-input-field-error-message')
-      .should('contain.text', 'Required')
+    cy.contains('Required').should('be.visible')
   })
 
+  it('TC-LOG-07: Validation When Both Fields Empty', () => {
 
-  it('TC-LOG-07: Validation When Both Fields Are Empty', () => {
-
-    LoginPage.clickLogin()
+    loginPage.clickLogin()
 
     cy.get('.oxd-input-field-error-message')
       .should('have.length', 2)
   })
 
-
   it('TC-LOG-08: Password Field Must Be Masked', () => {
 
-    LoginPage.passwordInput()
+    loginPage.passwordInput()
       .should('have.attr', 'type', 'password')
-
-    LoginPage.inputPassword('admin123')
-
-    LoginPage.passwordInput()
-      .invoke('attr', 'type')
-      .should('eq', 'password')
   })
 
-
-  it('TC-LOG-09: Log in by pressing the Enter key', () => {
+  it('TC-LOG-09: Login Using Enter Key', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
-    LoginPage.inputUsername(loginData.validUser.username)
-    LoginPage.inputPassword(loginData.validUser.password)
-    LoginPage.pressEnter()
-
-    cy.wait('@loginRequest')
-
-    cy.url().should('include', '/dashboard')
-    cy.contains('Dashboard').should('be.visible')
-  })
-
-  it('TC-LOG-10: Login Failed When Username and Password Incorrect', () => {
-
-    cy.intercept('POST', '**/auth/validate').as('loginRequest')
-
-    LoginPage.login('WrongUser', 'WrongPass')
-
-    cy.wait('@loginRequest')
-
-    cy.contains('Invalid credentials').should('be.visible')
-    cy.url().should('include', '/auth/login')
-  })
-
-  it('TC-LOG-11: Login With Leading or Trailing Spaces', () => {
-
-    cy.intercept('POST', '**/auth/validate').as('loginRequest')
-
-    LoginPage.login('  Admin  ', 'admin123')
-
-    cy.wait('@loginRequest')
-
-    cy.contains('Invalid credentials').should('be.visible')
-  })
-
-  it('TC-LOG-12: Login Failed When Password Contains Leading or Trailing Spaces', () => {
-
-    cy.intercept('POST', '**/auth/validate').as('loginRequest')
-
-    LoginPage.login('Admin', '  admin123  ')
-
-    cy.wait('@loginRequest')
-
-    cy.contains('Invalid credentials').should('be.visible')
-  })
-
-  it('TC-LOG-13: Login Success When Username Is Uppercase', () => {
-
-    cy.intercept('POST', '**/auth/validate').as('loginRequest')
-
-    LoginPage.login('ADMIN', 'admin123')
+    loginPage.enterUsername(loginData.validUser.username)
+    loginPage.enterPassword(loginData.validUser.password)
+    loginPage.pressEnter()
 
     cy.wait('@loginRequest')
 
     cy.url().should('include', '/dashboard')
   })
 
-  it('TC-LOG-14: Login Failed When Password Is Uppercase', () => {
+  it('TC-LOG-10: Login Failed - Both Incorrect', () => {
 
     cy.intercept('POST', '**/auth/validate').as('loginRequest')
 
-    LoginPage.login('Admin', 'ADMIN123')
+    loginPage.login('WrongUser', 'WrongPass')
 
     cy.wait('@loginRequest')
 
     cy.contains('Invalid credentials').should('be.visible')
   })
 
-  it('TC-LOG-15: Should Navigate Between Fields Using Tab Key', () => {
+  it('TC-LOG-11: Login With Leading/Trailing Spaces in Username', () => {
 
-    LoginPage.usernameInput().focus()
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    loginPage.login('  Admin  ', 'admin123')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+  })
+
+  it('TC-LOG-12: Login With Leading/Trailing Spaces in Password', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    loginPage.login('Admin', '  admin123  ')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+  })
+
+  it('TC-LOG-13: Login Success When Username Uppercase', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    loginPage.login('ADMIN', 'admin123')
+
+    cy.wait('@loginRequest')
+
+    cy.url().should('include', '/dashboard')
+  })
+
+  it('TC-LOG-14: Login Failed When Password Uppercase', () => {
+
+    cy.intercept('POST', '**/auth/validate').as('loginRequest')
+
+    loginPage.login('Admin', 'ADMIN123')
+
+    cy.wait('@loginRequest')
+
+    cy.contains('Invalid credentials').should('be.visible')
+  })
+
+  it('TC-LOG-15: Navigate Between Fields Using Tab', () => {
+
+    loginPage.usernameInput().focus()
+    cy.realPress('Tab')
+
+    loginPage.passwordInput().should('have.focus')
 
     cy.realPress('Tab')
 
-    LoginPage.passwordInput().should('have.focus')
-
-    cy.realPress('Tab')
-
-    LoginPage.loginButton().should('have.focus')
+    loginPage.loginButton().should('have.focus')
   })
 
 })

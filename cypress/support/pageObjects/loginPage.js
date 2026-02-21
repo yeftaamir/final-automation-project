@@ -4,6 +4,14 @@ class LoginPage {
     cy.visit('/web/index.php/auth/login')
   }
 
+  logo() {
+    return cy.get('.orangehrm-login-branding')
+  }
+
+  loginTitle() {
+    return cy.contains('Login')
+  }
+
   usernameInput() {
     return cy.get('input[name="username"]')
   }
@@ -27,6 +35,16 @@ class LoginPage {
   clickLogin() {
     this.loginButton().click()
   }
+
+  login(username, password) {
+    this.enterUsername(username)
+    this.enterPassword(password)
+    this.clickLogin()
+  }
+
+  pressEnter() {
+    this.passwordInput().type('{enter}')
+  }
 }
 
-module.exports = LoginPage 
+module.exports = LoginPage

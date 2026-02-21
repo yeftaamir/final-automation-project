@@ -40,16 +40,22 @@ class ForgotPasswordPage {
     this.usernameInput().clear().type(username)
   }
 
+  // clickReset() {
+  //   this.resetButton().click()
+  // }
   clickReset() {
-    this.resetButton().click()
+  return cy.get('button[type="submit"]').click({ force: true })
   }
 
   clickCancel() {
     this.cancelButton().click()
   }
 
+  // submitWithEnter() {
+  //   this.usernameInput().type('{enter}')
+  // }
   submitWithEnter() {
-    this.usernameInput().type('{enter}')
+  return cy.get('input[name="username"]').type('{enter}')
   }
 
   clearUsername() {

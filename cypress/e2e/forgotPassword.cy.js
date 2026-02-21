@@ -7,10 +7,9 @@ describe('Forgot Password Test Cases', () => {
   const forgotPage = new ForgotPasswordPage()
 
   beforeEach(() => {
-    loginPage.visit()
-    forgotPage.clickForgotPassword()
-    forgotPage.interceptResetRequest()
-  })
+  loginPage.visit()
+  forgotPage.clickForgotPassword()
+})
 
 
   it('TC-FOP-01 - Should navigate to forgot password from login page', () => {
@@ -26,15 +25,12 @@ describe('Forgot Password Test Cases', () => {
 
 
   it('TC-FOP-03 - Should submit forgot password form', () => {
-
-    cy.intercept('GET', '**/auth/sendPasswordReset*').as('resetResult')
-
     forgotPage.enterUsername('Admin')
     forgotPage.clickReset()
 
-    cy.wait('@resetResult')
+    cy.contains('Reset Password link sent successfully')
+      .should('be.visible')
 
-    cy.url().should('match', /sendPasswordReset/)
   })
 
 
@@ -58,41 +54,30 @@ describe('Forgot Password Test Cases', () => {
 
 
   it('TC-FOP-07 - Should handle username with spaces', () => {
-
-    cy.intercept('GET', '**/auth/sendPasswordReset*').as('resetResult')
-
+    
     forgotPage.enterUsername('   Admin   ')
     forgotPage.clickReset()
 
-    cy.wait('@resetResult')
-
-    cy.url().should('match', /sendPasswordReset/)
+    cy.contains('Reset Password link sent successfully')
+      .should('be.visible')
   })
 
 
   it('TC-FOP-08 - Should handle case sensitive username', () => {
-
-    cy.intercept('GET', '**/auth/sendPasswordReset*').as('resetResult')
-
-    forgotPage.enterUsername('admin') // lowercase
+    forgotPage.enterUsername('admin')
     forgotPage.clickReset()
 
-    cy.wait('@resetResult')
-
-    cy.url().should('match', /sendPasswordReset/)
+    cy.contains('Reset Password link sent successfully')
+      .should('be.visible')
   })
 
 
   it('TC-FOP-09 - Should submit form using enter key', () => {
-
-    cy.intercept('GET', '**/auth/sendPasswordReset*').as('resetResult')
-
     forgotPage.enterUsername('Admin')
     forgotPage.submitWithEnter()
 
-    cy.wait('@resetResult')
-
-    cy.url().should('match', /sendPasswordReset/)
+    cy.contains('Reset Password link sent successfully')
+      .should('be.visible')
   })
 
 })
